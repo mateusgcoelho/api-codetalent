@@ -6,7 +6,7 @@ export class Migrations1720456660115 implements MigrationInterface {
       CREATE TABLE IF NOT EXISTS produto (
         id SERIAL NOT NULL PRIMARY KEY,
         descricao VARCHAR(60) NOT NULL,
-        custo NUMERIC(13,3) NULL
+        custo NUMERIC(13,3) DEFAULT(0)
       );
     `);
   }

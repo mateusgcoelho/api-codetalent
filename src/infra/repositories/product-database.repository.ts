@@ -56,6 +56,7 @@ export default class ProductRepositoryDatabase implements ProductRepository {
   }
 
   async saveSalePrice(salePrice: SalePrice): Promise<SalePrice> {
+    console.log(salePrice);
     const salePriceFinded = await this.ormSalePriceRepository.findOne({
       where: {
         shop: {

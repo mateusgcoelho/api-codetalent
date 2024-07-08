@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import Shop from 'src/domain/entities/shop';
 import Product from '../../domain/entities/product';
 import SalePrice from '../../domain/entities/sale-price';
 import ProductRepository from '../../domain/repositories/product.repository';
@@ -27,12 +28,13 @@ export default class AssignSalePriceProductUseCase {
   async execute(
     input: InputAssignSalePriceProduct,
   ): Promise<OutputAssignSalePriceProduct> {
-    const shop = await this.shopRepository.get(input.shopId);
+    const shopModel = await this.shopRepository.get(input.shopId);
 
-    if (!shop) {
+    if (!shopModel) {
       throw new Error();
     }
 
+    const shop = new Shop(shopModel.id, shopModel.description);
     const salePrice = SalePrice.create(shop, input.productId, input.salePrice);
     await this.productRepository.saveSalePrice(salePrice);
 

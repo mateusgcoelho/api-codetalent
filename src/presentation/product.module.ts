@@ -7,6 +7,7 @@ import ProductModel from 'src/infra/models/product.model';
 import SalePriceModel from 'src/infra/models/sale-price.model';
 import ShopModel from 'src/infra/models/shop.model';
 import ProductRepositoryDatabase from 'src/infra/repositories/product-database.repository';
+import ShopRepositoryDatabase from 'src/infra/repositories/shop-database.repository';
 import ProductController from './controllers/product.controller';
 
 @Module({
@@ -15,6 +16,10 @@ import ProductController from './controllers/product.controller';
   ],
   providers: [
     Logger,
+    {
+      provide: 'ShopRepository',
+      useClass: ShopRepositoryDatabase,
+    },
     {
       provide: 'ProductRepository',
       useClass: ProductRepositoryDatabase,

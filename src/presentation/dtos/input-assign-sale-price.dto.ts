@@ -1,12 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsNumberString, IsOptional } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 export default class InputAssignSalePrice {
-  @IsNumberString()
-  @IsOptional()
+  @IsNumber()
   @Transform(({ value }) => parseInt(value))
   shopId: number;
 
-  @IsNumberString()
+  @IsNumber()
   salePrice: number;
 }
