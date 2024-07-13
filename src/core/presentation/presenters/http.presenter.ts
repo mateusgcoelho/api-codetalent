@@ -1,22 +1,23 @@
 import { HttpStatus } from '@nestjs/common';
 
-interface OutputResponse {
+type OutputResponse = {
+  timestamp?: string;
   statusCode: HttpStatus;
+  path?: string;
   errorCode?: number;
   message?: string;
-  data: any;
-}
+  data?: any;
+};
 
 export class HttpPresenter {
-  static handle(
-    statusCode: HttpStatus,
-    data: any,
-    message?: string,
-  ): OutputResponse {
+  static handle(props: OutputResponse): OutputResponse {
     return {
-      statusCode,
-      data,
-      message,
+      path: props.path,
+      timestamp: new Date().toISOString(),
+      statusCode: props.statusCode,
+      errorCode: props.errorCode,
+      data: props.data,
+      message: props.message,
     };
   }
 }

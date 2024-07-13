@@ -17,6 +17,13 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "allowJs": true,
+    "paths": {
+      "@product/*": ["./src/product/*"],
+      "@supermarket/*": ["./src/supermarket/*"],
+      "@core/*": ["./src/core/*"],
+      "../*": ["*"]
+    }
   }
 }

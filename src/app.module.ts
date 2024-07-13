@@ -1,7 +1,11 @@
 import { Logger, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductModule } from './presentation/product.module';
+import ProductModel from '@product/infra/models/product.model';
+import SalePriceModel from '@product/infra/models/sale-price.model';
+import SupermarketModel from '@product/infra/models/supermarket.model';
+import { SupermarketModule } from '@supermarket/presentation/supermarket.module';
+import { ProductModule } from './product/presentation/product.module';
 
 @Module({
   imports: [
@@ -18,10 +22,12 @@ import { ProductModule } from './presentation/product.module';
         username: configService.get<string>('DATABASE_USERNAME'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [__dirname + '/infra/models/*.model.js'],
+        entities: [ProductModel, SalePriceModel, SupermarketModel],
+        synchronize: true,
       }),
     }),
     ProductModule,
+    SupermarketModule,
   ],
   providers: [Logger],
   controllers: [],

@@ -1,5 +1,7 @@
 import 'reflect-metadata';
 
+import { DomainErrorFilter } from '@core/presentation/filters/domain-error.filter';
+import { HttpExceptionFilter } from '@core/presentation/filters/http-exception.filter';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
@@ -8,12 +10,17 @@ import { HttpResponseInterceptor } from './core/presentation/interceptors/http-r
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.setGlobalPrefix('/api/v1');
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
+      whitelist: true,
     }),
   );
+  app.useGlobalFilters(new HttpExceptionFilter(), new DomainErrorFilter());
   app.useGlobalInterceptors(new HttpResponseInterceptor());
+  app.enableCors();
 
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
