@@ -30,23 +30,26 @@ export default class ProductRepositoryDatabase implements ProductRepository {
           id: productId,
         },
       },
+      relations: ['product', 'supermarket'],
     });
 
-    if (!salePrice) {
+    console.log(salePriceModel);
+
+    if (!salePriceModel) {
       throw new SalePriceNotFound();
     }
 
     const salePriceUpdatedModel = await this.ormSalePriceRepository.save({
-      ...salePriceModel,
+      id: salePriceModel.id,
       salePrice: salePrice,
     });
 
     return new SalePrice(
       new Supermarket(
-        salePriceUpdatedModel.supermarket.id,
-        salePriceUpdatedModel.supermarket.description,
+        salePriceModel.supermarket.id,
+        salePriceModel.supermarket.description,
       ),
-      salePriceUpdatedModel.product.id,
+      salePriceModel.product.id,
       salePriceUpdatedModel.salePrice,
     );
   }
@@ -196,6 +199,12 @@ export default class ProductRepositoryDatabase implements ProductRepository {
 
     if (filter.cost) {
       where.cost = filter.cost;
+    }
+
+    if (filter.price) {
+      where.salesPrices = {
+        salePrice: filter.price,
+      };
     }
 
     const [models, total] = await this.ormProductRepository.findAndCount({

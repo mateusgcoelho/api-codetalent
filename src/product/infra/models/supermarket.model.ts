@@ -3,7 +3,7 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 @Entity({ schema: 'public', name: 'loja' })
 export default class SupermarketModel {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id: number;
 
   @Column({
     length: 60,

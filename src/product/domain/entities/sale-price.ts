@@ -16,7 +16,7 @@ export default class SalePrice {
     productId: number,
     salePrice: number,
   ) {
-    return new SalePrice(supermarket, productId, salePrice);
+    return new SalePrice(supermarket, productId, Number(salePrice));
   }
 
   get supermarket(): Supermarket {

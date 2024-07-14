@@ -101,6 +101,114 @@ describe('ProductController (e2e)', () => {
     });
   });
 
+  describe('PUT - /api/v1/products/:id', () => {
+    it(`
+      Given a request to update a product,
+      When product updated with success in database,
+      Then should be return it
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .put('/api/v1/products/2')
+        .send({
+          description: 'TESTE DE PRODUTO2',
+          cost: 84,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 200,
+        path: '/api/v1/products/2',
+        timestamp: expect.anything(),
+        data: {
+          product: {
+            id: 2,
+            description: 'TESTE DE PRODUTO2',
+            cost: 84,
+            image: null,
+          },
+        },
+      });
+    });
+
+    it(`
+      Given a request to update a product,
+      When product not exists in database,
+      Then should be return a error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .put('/api/v1/products/2444')
+        .send({
+          description: 'TESTE DE PRODUTO2',
+          cost: 84,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/2444',
+        timestamp: expect.anything(),
+        errorCode: 1,
+        message: 'Não foi possível encontrar o produto.',
+      });
+    });
+  });
+
+  describe('PUT - /api/v1/products/:id/sale-price/:supermarketId', () => {
+    it(`
+      Given a request to update a sale price product,
+      When sale price updated with success in database,
+      Then should be return it
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .put('/api/v1/products/1/sale-price/1')
+        .send({
+          salePrice: 55,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 200,
+        path: '/api/v1/products/1/sale-price/1',
+        timestamp: expect.anything(),
+        data: {
+          salePrice: {
+            productId: 1,
+            salePrice: 55,
+            supermarket: {
+              description: 'LOJA',
+              id: 1,
+            },
+          },
+        },
+      });
+    });
+
+    it(`
+      Given a request to update a sale price product,
+      When shop not exists in database,
+      Then should be return a error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .put('/api/v1/products/1/sale-price/55')
+        .send({
+          salePrice: 55,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/1/sale-price/55',
+        timestamp: expect.anything(),
+        errorCode: 7,
+        message: 'Preço venda de produto para a loja não encontrado.',
+      });
+    });
+  });
+
   describe('GET - /api/v1/products', () => {
     it(`
       Given a request to find products,
@@ -130,12 +238,46 @@ describe('ProductController (e2e)', () => {
             },
             {
               id: 2,
-              description: 'TESTE DE PRODUTO',
-              cost: 567.89,
+              description: 'TESTE DE PRODUTO2',
+              cost: 84,
               image: null,
             },
           ],
           total: 2,
+          maxPage: 1,
+        },
+      });
+    });
+
+    it(`
+      Given a request to find products,
+      When the database search with filter (salePrice) is successful,
+      Then you should return products
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/products')
+        .query({
+          price: 55,
+          page: 1,
+          perPage: 10,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        statusCode: 200,
+        path: '/api/v1/products?price=55&page=1&perPage=10',
+        timestamp: expect.anything(),
+        data: {
+          products: [
+            {
+              id: 1,
+              description: 'COSTELA KG',
+              cost: 24.4,
+              image: null,
+            },
+          ],
+          total: 1,
           maxPage: 1,
         },
       });
@@ -164,8 +306,8 @@ describe('ProductController (e2e)', () => {
           products: [
             {
               id: 2,
-              description: 'TESTE DE PRODUTO',
-              cost: 567.89,
+              description: 'TESTE DE PRODUTO2',
+              cost: 84,
               image: null,
             },
           ],
@@ -198,8 +340,8 @@ describe('ProductController (e2e)', () => {
           products: [
             {
               id: 2,
-              description: 'TESTE DE PRODUTO',
-              cost: 567.89,
+              description: 'TESTE DE PRODUTO2',
+              cost: 84,
               image: null,
             },
           ],
@@ -217,7 +359,7 @@ describe('ProductController (e2e)', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/products')
         .query({
-          cost: 567.89,
+          cost: 84,
           page: 1,
           perPage: 10,
         })
@@ -226,14 +368,14 @@ describe('ProductController (e2e)', () => {
 
       expect(response.body).toEqual({
         statusCode: 200,
-        path: '/api/v1/products?cost=567.89&page=1&perPage=10',
+        path: '/api/v1/products?cost=84&page=1&perPage=10',
         timestamp: expect.anything(),
         data: {
           products: [
             {
               id: 2,
-              description: 'TESTE DE PRODUTO',
-              cost: 567.89,
+              description: 'TESTE DE PRODUTO2',
+              cost: 84,
               image: null,
             },
           ],
@@ -269,7 +411,7 @@ describe('ProductController (e2e)', () => {
           salesPrices: [
             {
               productId: 1,
-              salePrice: '55.600',
+              salePrice: 55,
               supermarket: {
                 description: 'LOJA',
                 id: 1,
@@ -321,14 +463,14 @@ describe('ProductController (e2e)', () => {
         data: {
           product: {
             id: 2,
-            description: 'TESTE DE PRODUTO',
-            cost: 567.89,
+            description: 'TESTE DE PRODUTO2',
+            cost: 84,
             image: null,
           },
           salesPrices: [
             {
               productId: 2,
-              salePrice: '55.200',
+              salePrice: 55.2,
               supermarket: {
                 description: 'LOJA',
                 id: 1,
@@ -380,6 +522,104 @@ describe('ProductController (e2e)', () => {
         timestamp: expect.anything(),
         errorCode: 1,
         message: 'Não foi possível encontrar o produto.',
+      });
+    });
+
+    it(`
+      Given the request to create the sales price of the product,
+      When supermarket not exists in the database,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/products/1/sale-price/441')
+        .send({
+          salePrice: 55.2,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/1/sale-price/441',
+        timestamp: expect.anything(),
+        errorCode: 2,
+        message: 'Não foi possível encontrar a loja.',
+      });
+    });
+  });
+
+  describe('DELETE - /api/v1/products/:id', () => {
+    it(`
+      Given the request to delete a product,
+      When successfully deleted in the database,
+      Then it must be possible to return success
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/products/2')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 200,
+        path: '/api/v1/products/2',
+        timestamp: expect.anything(),
+      });
+    });
+
+    it(`
+      Given the request to delete a product,
+      When product not exists in the database,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/products/55')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/55',
+        timestamp: expect.anything(),
+        errorCode: 1,
+        message: 'Não foi possível encontrar o produto.',
+      });
+    });
+  });
+
+  describe('DELETE - /api/v1/products/:id/sale-price/:supermarketId', () => {
+    it(`
+      Given the request to delete a sale product,
+      When successfully deleted in the database,
+      Then it must be possible to return success
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/products/1/sale-price/1')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 200,
+        path: '/api/v1/products/1/sale-price/1',
+        timestamp: expect.anything(),
+      });
+    });
+
+    it(`
+      Given the request to delete a sale product,
+      When sale product not exists in the database,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .delete('/api/v1/products/1/sale-price/1531')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/1/sale-price/1531',
+        timestamp: expect.anything(),
+        errorCode: 7,
+        message: 'Preço venda de produto para a loja não encontrado.',
       });
     });
   });

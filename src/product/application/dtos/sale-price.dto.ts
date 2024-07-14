@@ -12,7 +12,7 @@ export default class SalePriceDto {
     return new SalePriceDto(
       entity.productId,
       SupermarketDto.fromEntity(entity.supermarket),
-      entity.salePrice,
+      Number(entity.salePrice),
     );
   }
 }
