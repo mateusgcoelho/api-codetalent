@@ -41,22 +41,25 @@ export default class ProductController {
     private readonly updateSalePriceUseCase: UpdateSalePriceUseCase,
   ) {}
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  async getProduct(@Param('id') productId: number) {
-    return await this.getProductUseCase.execute({ productId });
-  }
-
   @Get()
   @HttpCode(HttpStatus.OK)
   async findProducts(@Query() input: InputFindProducts) {
     return await this.findProductsUseCase.execute(input);
   }
 
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async getProduct(@Param('id') productId: number) {
+    return await this.getProductUseCase.execute({ productId });
+  }
+
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
   @HttpCode(HttpStatus.CREATED)
-  async createProduct(@Body() input: InputCreateProduct, @UploadedFile() file) {
+  @UseInterceptors(FileInterceptor('image'))
+  async createProduct(
+    @Body() input: InputCreateProduct,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
     return await this.creteProductUseCase.execute({
       ...input,
       image: file?.buffer,

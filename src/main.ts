@@ -7,10 +7,12 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpResponseInterceptor } from './core/presentation/interceptors/http-response.interceptor';
+import SwaggerPresenter from './swagger/presentation/swagger.presenter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   configureApp(app);
+  SwaggerPresenter.configureSwagger(app);
 
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
