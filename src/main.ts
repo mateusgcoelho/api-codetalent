@@ -5,6 +5,7 @@ import { HttpExceptionFilter } from '@core/presentation/filters/http-exception.f
 import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { HttpResponseInterceptor } from './core/presentation/interceptors/http-response.interceptor';
 import SwaggerPresenter from './swagger/presentation/swagger.presenter';
@@ -14,10 +15,13 @@ async function bootstrap() {
   configureApp(app);
   SwaggerPresenter.configureSwagger(app);
 
+  const dataSource = app.get(DataSource);
+  await dataSource.runMigrations();
+
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
 
-  const httpPort = configService.get<number>('PORT') ?? 3000;
+  const httpPort = configService.get<number>('SERVER_PORT') ?? 3000;
   await app.listen(httpPort);
 
   const urlApplication = await app.getUrl();

@@ -1,8 +1,8 @@
 {
   "name": "api-codetalent",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Esta API fornece uma interface completa para gerenciar produtos e preços de venda em um ambiente multi-loja.",
+  "author": "João Mateus",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
@@ -18,7 +18,9 @@
     "test:cov": "jest --coverage --passWithNoTests",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
-    "test:cov-all": "jest --coverage --passWithNoTests && jest ./e2e/ --coverage --config ./e2e/jest-e2e.json"
+    "test:cov-all": "jest --coverage --passWithNoTests && jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
+    "typeorm:migrate": "npm run build && npx ts-node ./node_modules/typeorm/cli.js migration:run -d ./src/core/infra/database/data-source.ts",
+    "docker": "docker-compose -f docker-compose.yml up -d --build"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",
@@ -32,11 +34,8 @@
     "dotenv": "^16.4.5",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.12.0",
-    "pg-mem": "^2.8.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sharp": "^0.33.4",
-    "sqlite3": "^5.1.7",
     "swagger-ui-express": "^5.0.1",
     "typeorm": "^0.3.20"
   },
