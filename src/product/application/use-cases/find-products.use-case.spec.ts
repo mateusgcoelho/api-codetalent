@@ -14,15 +14,18 @@ describe('FindProductsUseCase', () => {
       saveSalePrice: jest.fn(),
       save: jest.fn(),
       findProductSalesPrices: jest.fn(),
+      updateSalePrice: jest.fn(),
+      deleteSalePrice: jest.fn(),
+      delete: jest.fn(),
     };
 
     findProducts = new FindProductsUseCase(productRepository);
   });
 
   test(`
-    Given products in the database
-    when retrieving all products
-    then all products should be returned
+    Given products in the database,
+    When retrieving all products,
+    Then all products should be returned
   `, async function () {
     const outputFindProducts = await findProducts.execute({
       page: 1,

@@ -9,4 +9,9 @@ export default interface ProductRepository {
   deleteSalePrice(productId: number, supermarketId: number): Promise<void>;
   saveSalePrice(salePrice: SalePrice): Promise<SalePrice>;
   findProductSalesPrices(productId: number): Promise<[Product, SalePrice[]]>;
+  updateSalePrice(
+    productId: number,
+    supermarketId: number,
+    salePrice: number,
+  ): Promise<SalePrice>;
 }

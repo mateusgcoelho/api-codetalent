@@ -15,14 +15,17 @@ describe('CreateProductUseCase', () => {
       save: jest.fn().mockResolvedValue(mockProduct),
       saveSalePrice: jest.fn(),
       findProductSalesPrices: jest.fn(),
+      updateSalePrice: jest.fn(),
+      deleteSalePrice: jest.fn(),
+      delete: jest.fn(),
     };
     createProduct = new CreateProductUseCase(productRepository);
   });
 
   test(`
-    Given a product
-    when creating the product
-    then it should be create and return it
+    Given a product,
+    When creating the product,
+    Then it should be create and return it
   `, async function () {
     const inputCreateProduct = {
       description: 'COSTELA BOVINA KG',

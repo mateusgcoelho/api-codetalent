@@ -26,10 +26,14 @@ describe('AssignSalesPriceProductUseCase', () => {
       save: jest.fn(),
       saveSalePrice: jest.fn(),
       findAndCount: jest.fn(),
+      delete: jest.fn(),
+      deleteSalePrice: jest.fn(),
+      updateSalePrice: jest.fn(),
     };
 
     supermarketRepository = {
       findOrThrow: jest.fn().mockResolvedValue(mockSupermarket),
+      findAll: jest.fn(),
     };
 
     assignSalePriceProduct = new AssignSalePriceProductUseCase(
@@ -39,9 +43,9 @@ describe('AssignSalesPriceProductUseCase', () => {
   });
 
   it(`
-    Given a productId, a supermarketId and a salePrice
-    when not exists a sale price for product and supermarket
-    then it should be create a new sale price and return it
+    Given a productId, a supermarketId and a salePrice,
+    When not exists a sale price for product and supermarket,
+    Then it should be create a new sale price and return it
   `, async function () {
     const inputAssignSalesPriceProduct = {
       supermarketId: 1,

@@ -1,14 +1,8 @@
-import {
-  HttpStatus,
-  INestApplication,
-  Logger,
-  ValidationPipe,
-} from '@nestjs/common';
+import { HttpStatus, INestApplication, Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import 'reflect-metadata';
 import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
-import { HttpResponseInterceptor } from '../src/core/presentation/interceptors/http-response.interceptor';
 
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ProductModule } from '@product/presentation/product.module';
@@ -18,6 +12,8 @@ import ProductModel from '@product/infra/models/product.model';
 import SalePriceModel from '@product/infra/models/sale-price.model';
 import SupermarketModel from '@product/infra/models/supermarket.model';
 import { PostgreSqlContainer } from '@testcontainers/postgresql';
+import { configureApp } from './utils/configure-app';
+import { runMigrations } from './utils/run-migrations';
 
 jest.useRealTimers();
 
@@ -25,6 +21,23 @@ describe('ProductController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    const dataSource = await getDataSource();
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [AppModule, ProductModule],
+      providers: [Logger],
+    })
+      .overrideProvider(DataSource)
+      .useValue(dataSource)
+      .compile();
+
+    app = module.createNestApplication<NestExpressApplication>();
+    configureApp(app);
+
+    await app.init();
+  });
+
+  async function getDataSource(): Promise<DataSource> {
     const container = await new PostgreSqlContainer('postgres')
       .withExposedPorts(5432)
       .withDatabase('nest')
@@ -48,41 +61,10 @@ describe('ProductController (e2e)', () => {
 
     await dataSource.initialize();
     await dataSource.runMigrations();
-    const supermarket = await dataSource.getRepository(SupermarketModel).save({
-      id: 1,
-      description: 'LOJA',
-    });
-    const product = await dataSource.getRepository(ProductModel).save({
-      id: 1,
-      description: 'COSTELA KG',
-      cost: 24.4,
-      image: null,
-    });
-    await dataSource.getRepository(SalePriceModel).save({
-      product,
-      supermarket,
-      salePrice: 55.6,
-    });
+    await runMigrations(dataSource);
 
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, ProductModule],
-      providers: [Logger],
-    })
-      .overrideProvider(DataSource)
-      .useValue(dataSource)
-      .compile();
-
-    app = module.createNestApplication<NestExpressApplication>();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        whitelist: true,
-      }),
-    );
-    app.useGlobalInterceptors(new HttpResponseInterceptor());
-
-    await app.init();
-  });
+    return dataSource;
+  }
 
   afterAll(async () => {
     await app.close();
@@ -90,12 +72,12 @@ describe('ProductController (e2e)', () => {
 
   describe('POST - /api/v1/products', () => {
     it(`
-      Given a request to create a new product
-      when product created with success in database
-      then should be return it
+      Given a request to create a new product,
+      When product created with success in database,
+      Then should be return it
     `, async () => {
       const response = await request(app.getHttpServer())
-        .post('/products')
+        .post('/api/v1/products')
         .send({
           description: 'TESTE DE PRODUTO',
           cost: 567.89,
@@ -105,6 +87,8 @@ describe('ProductController (e2e)', () => {
 
       expect(response.body).toStrictEqual({
         statusCode: 201,
+        path: '/api/v1/products',
+        timestamp: expect.anything(),
         data: {
           product: {
             id: 2,
@@ -119,12 +103,12 @@ describe('ProductController (e2e)', () => {
 
   describe('GET - /api/v1/products', () => {
     it(`
-      Given a request to find products
-      when the database search is successful
-      then you should return products
+      Given a request to find products,
+      When the database search is successful,
+      Then you should return products
     `, async () => {
       const response = await request(app.getHttpServer())
-        .get('/products')
+        .get('/api/v1/products')
         .query({
           page: 1,
           perPage: 10,
@@ -132,8 +116,10 @@ describe('ProductController (e2e)', () => {
         .set('Content-Type', 'application/json')
         .expect(HttpStatus.OK);
 
-      expect(response.body).toStrictEqual({
+      expect(response.body).toEqual({
         statusCode: 200,
+        path: '/api/v1/products?page=1&perPage=10',
+        timestamp: expect.anything(),
         data: {
           products: [
             {
@@ -154,25 +140,125 @@ describe('ProductController (e2e)', () => {
         },
       });
     });
-  });
 
-  describe('GET - /api/v1/products/:id', () => {
     it(`
-      Given a request to find a specific product
-      when the database search is successful
-      then you should return product and yours sales prices
+      Given a request to find products,
+      When the database search with filter (productId) is successful,
+      Then you should return products
     `, async () => {
       const response = await request(app.getHttpServer())
-        .get('/products/1')
+        .get('/api/v1/products')
         .query({
+          productId: 2,
           page: 1,
           perPage: 10,
         })
         .set('Content-Type', 'application/json')
         .expect(HttpStatus.OK);
 
+      expect(response.body).toEqual({
+        statusCode: 200,
+        path: '/api/v1/products?productId=2&page=1&perPage=10',
+        timestamp: expect.anything(),
+        data: {
+          products: [
+            {
+              id: 2,
+              description: 'TESTE DE PRODUTO',
+              cost: 567.89,
+              image: null,
+            },
+          ],
+          total: 1,
+          maxPage: 1,
+        },
+      });
+    });
+
+    it(`
+      Given a request to find products,
+      When the database search with filter (description) is successful,
+      Then you should return products
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/products')
+        .query({
+          description: 'TESTE',
+          page: 1,
+          perPage: 10,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        statusCode: 200,
+        path: '/api/v1/products?description=TESTE&page=1&perPage=10',
+        timestamp: expect.anything(),
+        data: {
+          products: [
+            {
+              id: 2,
+              description: 'TESTE DE PRODUTO',
+              cost: 567.89,
+              image: null,
+            },
+          ],
+          total: 1,
+          maxPage: 1,
+        },
+      });
+    });
+
+    it(`
+      Given a request to find products,
+      When the database search with filter (cost) is successful,
+      Then you should return products
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/products')
+        .query({
+          cost: 567.89,
+          page: 1,
+          perPage: 10,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
+      expect(response.body).toEqual({
+        statusCode: 200,
+        path: '/api/v1/products?cost=567.89&page=1&perPage=10',
+        timestamp: expect.anything(),
+        data: {
+          products: [
+            {
+              id: 2,
+              description: 'TESTE DE PRODUTO',
+              cost: 567.89,
+              image: null,
+            },
+          ],
+          total: 1,
+          maxPage: 1,
+        },
+      });
+    });
+  });
+
+  describe('GET - /api/v1/products/:id', () => {
+    it(`
+      Given a request to find a specific product,
+      When the database search is successful,
+      Then you should return product and yours sales prices
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/products/1')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.OK);
+
       expect(response.body).toStrictEqual({
         statusCode: 200,
+        path: '/api/v1/products/1',
+        timestamp: expect.anything(),
         data: {
           product: {
             id: 1,
@@ -191,6 +277,109 @@ describe('ProductController (e2e)', () => {
             },
           ],
         },
+      });
+    });
+
+    it(`
+      Given a request to find a specific product,
+      When the database search is not found the product,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/products/43')
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/43',
+        timestamp: expect.anything(),
+        errorCode: 1,
+        message: 'Não foi possível encontrar o produto.',
+      });
+    });
+  });
+
+  describe('POST - /api/v1/products/:id/sale-price/:supermarketId', () => {
+    it(`
+      Given the request to create the sales price of the product,
+      When successfully created in the database,
+      Then it must be possible to return created product information
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/products/2/sale-price/1')
+        .send({
+          salePrice: 55.2,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.CREATED);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 201,
+        path: '/api/v1/products/2/sale-price/1',
+        timestamp: expect.anything(),
+        data: {
+          product: {
+            id: 2,
+            description: 'TESTE DE PRODUTO',
+            cost: 567.89,
+            image: null,
+          },
+          salesPrices: [
+            {
+              productId: 2,
+              salePrice: '55.200',
+              supermarket: {
+                description: 'LOJA',
+                id: 1,
+              },
+            },
+          ],
+        },
+      });
+    });
+
+    it(`
+      Given the request to create the sales price of the product,
+      When sale price already exists in the database,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/products/1/sale-price/1')
+        .send({
+          salePrice: 55.2,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.CONFLICT);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 409,
+        path: '/api/v1/products/1/sale-price/1',
+        timestamp: expect.anything(),
+        errorCode: 3,
+        message: 'Preço venda de produto ja existe para a loja.',
+      });
+    });
+
+    it(`
+      Given the request to create the sales price of the product,
+      When product not exists in the database,
+      Then it must be possible to return error
+    `, async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/v1/products/14/sale-price/1')
+        .send({
+          salePrice: 55.2,
+        })
+        .set('Content-Type', 'application/json')
+        .expect(HttpStatus.NOT_FOUND);
+
+      expect(response.body).toStrictEqual({
+        statusCode: 404,
+        path: '/api/v1/products/14/sale-price/1',
+        timestamp: expect.anything(),
+        errorCode: 1,
+        message: 'Não foi possível encontrar o produto.',
       });
     });
   });

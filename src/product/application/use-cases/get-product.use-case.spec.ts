@@ -23,15 +23,18 @@ describe('GetProductUseCase', () => {
       findProductSalesPrices: jest
         .fn()
         .mockResolvedValue([mockProduct, mockSalesPrices]),
+      updateSalePrice: jest.fn(),
+      deleteSalePrice: jest.fn(),
+      delete: jest.fn(),
     };
 
     getProduct = new GetProductUseCase(productRepository);
   });
 
   test(`
-    Given products in the database
-    when retrieving a product existent
-    then product should be returned
+    Given products in the database,
+    When retrieving a product existent,
+    Then product should be returned
   `, async function () {
     const outputGetProduct = await getProduct.execute({
       productId: 1,

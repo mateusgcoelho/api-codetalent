@@ -7,6 +7,7 @@ import DeleteSalePriceUseCase from '@product/application/use-cases/delete-sale-p
 import FindProductsUseCase from '@product/application/use-cases/find-products.use-case';
 import GetProductUseCase from '@product/application/use-cases/get-product.use-case';
 import UpdateProductUseCase from '@product/application/use-cases/update-product.use-case';
+import UpdateSalePriceUseCase from '@product/application/use-cases/update-sale-price.use-case';
 import ProductModel from '@product/infra/models/product.model';
 import SalePriceModel from '@product/infra/models/sale-price.model';
 import SupermarketModel from '@product/infra/models/supermarket.model';
@@ -46,6 +47,13 @@ export default class ProductProvider {
 
   private static get application(): Provider[] {
     return [
+      {
+        provide: UpdateSalePriceUseCase,
+        useFactory: (productRepository: ProductRepositoryDatabase) => {
+          return new UpdateSalePriceUseCase(productRepository);
+        },
+        inject: [ProductRepositoryDatabase],
+      },
       {
         provide: UpdateProductUseCase,
         useFactory: (productRepository: ProductRepositoryDatabase) => {

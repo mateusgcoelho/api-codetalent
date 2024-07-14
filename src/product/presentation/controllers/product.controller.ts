@@ -22,6 +22,7 @@ import DeleteSalePriceUseCase from '@product/application/use-cases/delete-sale-p
 import FindProductsUseCase from '@product/application/use-cases/find-products.use-case';
 import GetProductUseCase from '@product/application/use-cases/get-product.use-case';
 import UpdateProductUseCase from '@product/application/use-cases/update-product.use-case';
+import UpdateSalePriceUseCase from '@product/application/use-cases/update-sale-price.use-case';
 import InputAssignSalePrice from '../dtos/input-assign-sale-price.dto';
 import InputCreateProduct from '../dtos/input-create-product.dto';
 import InputFindProducts from '../dtos/input-find-products.dto';
@@ -37,6 +38,7 @@ export default class ProductController {
     private readonly deleteProductUseCase: DeleteProductUseCase,
     private readonly deleteSalePriceUseCase: DeleteSalePriceUseCase,
     private readonly updateProductUseCase: UpdateProductUseCase,
+    private readonly updateSalePriceUseCase: UpdateSalePriceUseCase,
   ) {}
 
   @Get(':id')
@@ -75,15 +77,30 @@ export default class ProductController {
     });
   }
 
-  @Post(':id/sale-price/assign')
+  @Post(':id/sale-price/:supermarketId')
   @HttpCode(HttpStatus.CREATED)
   async assignSalePrice(
     @Param('id') productId: number,
+    @Param('supermarketId') supermarketId: number,
     @Body() input: InputAssignSalePrice,
   ) {
     return await this.assignSalePriceProductUseCase.execute({
       ...input,
       productId: productId,
+      supermarketId: supermarketId,
+    });
+  }
+
+  @Put(':id/sale-price/:supermarketId')
+  async updateSalePrice(
+    @Param('id') productId: number,
+    @Param('supermarketId') supermarketId: number,
+    @Body() input: InputAssignSalePrice,
+  ) {
+    return await this.updateSalePriceUseCase.execute({
+      ...input,
+      productId: productId,
+      supermarketId: supermarketId,
     });
   }
 

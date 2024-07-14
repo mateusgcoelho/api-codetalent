@@ -16,6 +16,41 @@ export default class ProductRepositoryDatabase implements ProductRepository {
     private readonly ormSalePriceRepository: Repository<SalePriceModel>,
   ) {}
 
+  async updateSalePrice(
+    productId: number,
+    supermarketId: number,
+    salePrice: number,
+  ): Promise<SalePrice> {
+    const salePriceModel = await this.ormSalePriceRepository.findOne({
+      where: {
+        supermarket: {
+          id: supermarketId,
+        },
+        product: {
+          id: productId,
+        },
+      },
+    });
+
+    if (!salePrice) {
+      throw new SalePriceNotFound();
+    }
+
+    const salePriceUpdatedModel = await this.ormSalePriceRepository.save({
+      ...salePriceModel,
+      salePrice: salePrice,
+    });
+
+    return new SalePrice(
+      new Supermarket(
+        salePriceUpdatedModel.supermarket.id,
+        salePriceUpdatedModel.supermarket.description,
+      ),
+      salePriceUpdatedModel.product.id,
+      salePriceUpdatedModel.salePrice,
+    );
+  }
+
   async deleteSalePrice(
     productId: number,
     supermarketId: number,
