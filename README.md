@@ -33,6 +33,34 @@ Ou:
 docker-compose up -d --build
 ```
 
+# Teste de Integração
+
+Para evitar bugs encontrados com a integração a biblioteca (Testcontainers), é recomendavel ter a imagem `postgres` já instalada na maquina.
+
+```bash
+docker pull postgres
+```
+
+---
+
+Para realizar os testes unitarios e gerar cobertura, utilize:
+
+```bash
+npm run test:cov
+```
+
+Ou, para rodar testes de integração:
+
+```bash
+npm run test:e2e
+```
+
+Ou, para rodar todos os testes:
+
+```bash
+npm run test:cov-all
+```
+
 ## Documentação
 
 Para ter uma visão geral das rotas disponíveis no serviço basta, depois de serviço iniciado, acessar a rota `/api/docs`, sendo possível ter uma documentação swagger com rotas dispoíveis.
