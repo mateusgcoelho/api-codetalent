@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   postgres:
+    container_name: database
     image: postgres:14
     restart: always
     healthcheck:
@@ -18,6 +19,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
 
   api:
+    container_name: api-codetalent
     build: .
     depends_on:
       - postgres
