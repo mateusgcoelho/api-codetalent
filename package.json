@@ -17,8 +17,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage --passWithNoTests",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
-    "test:cov-all": "jest --coverage --passWithNoTests && jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
+    "test:e2e": "docker pull postgres && jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
+    "test:cov-all": "docker pull postgres && jest --coverage --passWithNoTests && jest ./e2e/ --coverage --config ./e2e/jest-e2e.json",
     "typeorm:migrate": "npm run build && npx ts-node ./node_modules/typeorm/cli.js migration:run -d ./src/core/infra/database/data-source.ts",
     "docker": "docker-compose -f docker-compose.yml up -d --build"
   },

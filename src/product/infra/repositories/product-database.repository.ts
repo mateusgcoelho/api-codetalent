@@ -33,8 +33,6 @@ export default class ProductRepositoryDatabase implements ProductRepository {
       relations: ['product', 'supermarket'],
     });
 
-    console.log(salePriceModel);
-
     if (!salePriceModel) {
       throw new SalePriceNotFound();
     }
