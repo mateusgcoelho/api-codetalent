@@ -1,22 +1,21 @@
 import 'reflect-metadata';
 
-import { DomainErrorFilter } from '@core/presentation/filters/domain-error.filter';
-import { HttpExceptionFilter } from '@core/presentation/filters/http-exception.filter';
-import { INestApplication, Logger, ValidationPipe } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import SupermarketModel from '@product/infra/models/supermarket.model';
 import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
-import { HttpResponseInterceptor } from './core/presentation/interceptors/http-response.interceptor';
+import AppPresenter from './app.presenter';
 import SwaggerPresenter from './swagger/presentation/swagger.presenter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  configureApp(app);
+  AppPresenter.configureApp(app);
   SwaggerPresenter.configureSwagger(app);
 
   const dataSource = app.get(DataSource);
-  await dataSource.runMigrations();
+  await runMigrations(dataSource);
 
   const configService = app.get(ConfigService);
   const logger = app.get(Logger);
@@ -32,15 +31,28 @@ async function bootstrap() {
 }
 bootstrap();
 
-function configureApp(app: INestApplication) {
-  app.setGlobalPrefix('/api/v1');
-  app.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-    }),
-  );
-  app.useGlobalFilters(new HttpExceptionFilter(), new DomainErrorFilter());
-  app.useGlobalInterceptors(new HttpResponseInterceptor());
-  app.enableCors();
+async function runMigrations(dataSource: DataSource) {
+  await dataSource.runMigrations({
+    transaction: 'all',
+  });
+
+  // Seeder temporario
+  await dataSource.getRepository(SupermarketModel).save([
+    {
+      id: 1,
+      description: 'LOJA PARAIBA',
+    },
+    {
+      id: 2,
+      description: 'LOJA LIMEIRA',
+    },
+    {
+      id: 3,
+      description: 'LOJA CAMPINAS',
+    },
+    {
+      id: 4,
+      description: 'LOJA PIRACICABA',
+    },
+  ]);
 }
