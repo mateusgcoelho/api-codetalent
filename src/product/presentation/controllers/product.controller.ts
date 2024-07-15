@@ -71,7 +71,7 @@ export default class ProductController {
   async updateProduct(
     @Param('id') productId: number,
     @Body() input: InputUpdateProduct,
-    @UploadedFile() file,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     return await this.updateProductUseCase.execute({
       ...input,

@@ -23,7 +23,12 @@ export default class UpdateProductUseCase {
 
     let description: string = product.description;
     let cost: number | undefined = product.cost;
-    let image: Buffer | undefined = product.image;
+    let image: Buffer | undefined =
+      input.image == null
+        ? null
+        : input.image != undefined
+          ? input.image
+          : product.image;
 
     if (input.description && input.description != product.description) {
       description = input.description;
@@ -32,8 +37,6 @@ export default class UpdateProductUseCase {
     if (input.cost && input.cost != product.cost) {
       cost = input.cost;
     }
-
-    image = input.image ?? null;
 
     const entityToUpdate = new Product(product.id, description, cost, image);
     const productUpdated = await this.productRepository.save(entityToUpdate);
