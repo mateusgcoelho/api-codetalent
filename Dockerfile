@@ -1,14 +1,10 @@
 FROM node:20 as builder
 
-ENV NODE_ENV build
-
-USER node
 WORKDIR /home/node
 
-COPY .env ./
-COPY package*.json ./
+COPY . .
 
-COPY --chown=node:node . .
+RUN npm install
 RUN npm run build \
     && npm prune --omit=dev
 
